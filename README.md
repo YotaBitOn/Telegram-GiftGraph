@@ -14,7 +14,7 @@ You of course can choose depth and limit of users visited
 ```
 git clone https://github.com/YotaBitOn/Telegram-GiftGraph
 pip install telethon dotenv
-python python gift_graph.py
+python python main.py
 ```
 
 ## Use instructions:
