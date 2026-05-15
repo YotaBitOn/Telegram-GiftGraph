@@ -1,0 +1,193 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: Inter;
+    font-weight: 700;
+    leading-trim: NONE;
+    line-height: 100%;
+    letter-spacing: 0%;
+
+}
+
+body {
+    color: #ffffff;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+
+    background: radial-gradient(98.8% 312.26% at 0.57% 5.19%, #1C92D2 0%, #8E29BA 49.42%, #EB9D58 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+
+}
+
+.main-container {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    flex-direction: column;
+
+    height: 40vh;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    height: 60px;
+    width: 100%;
+}
+
+#tg-id {
+    background: transparent;
+    border: 7px solid #ffffff;
+    border-radius: 25px;
+    color: #ffffff;
+    font-size: 24px;
+    padding: 10px;
+
+    width: 80%;
+    height: 100%;
+}
+
+#tg-id::placeholder {
+    color: #ffffff;
+    font-size: 20px;
+    padding: 10px;
+}
+
+#submit {
+    width: 20%;
+    height: 100%;
+    background: transparent;
+    border: 7px solid #ffffff;
+    border-radius: 25px;
+    color: #ffffff;
+}
+
+#check-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 32px;
+}
+
+
+
+
+
+#depth-container {
+    flex-direction: column;
+    height: 80px;
+}
+
+#depth-label {
+    font-size: 24px;
+}
+
+#depth {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* Chrome, Safari, Edge, Opera */
+#depth::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #3CFC15 7.21%, #AEF655 28.85%, #FFD52D 48.08%, #FC9F0B 71.63%, #FA0000 93.75%);
+    border: 7px solid #ffffff;
+    border-radius: 10px;
+}
+
+/* Firefox */
+#depth::-moz-range-track {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #3CFC15 7.21%, #AEF655 28.85%, #FFD52D 48.08%, #FC9F0B 71.63%, #FA0000 93.75%);
+    border: 7px solid #ffffff;
+    border-radius: 10px;
+}
+
+/* Slider pin */
+#depth::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -4px;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid #333;
+}
+
+#depth::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid #333;
+}
+
+
+.range-labels {
+    display: flex;
+    width: 110%;
+}
+
+.range-labels span {
+    flex: 1;
+    text-align: center;
+}
+
+#limit-label{
+    font-size: 24px;
+    width: 70%;
+    text-align: center;
+}
+
+#user-limit{
+    width: 30%;
+    height: 100%;
+
+    background: transparent;
+    border: 7px solid #ffffff;
+    border-radius: 25px;
+
+    color: #ffffff;
+    font-size: 24px;
+    padding: 10px;
+    text-align: center;
+}
+
+/* All except Firefox */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#git-icon {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+
+    cursor: pointer;
+    color: #F05032;
+    font-size: 40px;
+}
