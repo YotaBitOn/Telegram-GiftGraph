@@ -88,6 +88,7 @@ body {
 }
 
 #depth-label {
+    margin-bottom: 10px;
     font-size: 24px;
 }
 
@@ -142,6 +143,7 @@ body {
 .range-labels {
     display: flex;
     width: 110%;
+    margin-top:10px;
 }
 
 .range-labels span {

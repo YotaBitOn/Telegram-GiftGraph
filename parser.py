@@ -2,23 +2,27 @@ import asyncio
 import json
 import sys
 import os
-from collections import defaultdict
+import urllib.parse
+from collections import defaultdict, deque
 from telethon import TelegramClient, functions, types
 from telethon.errors import FloodWaitError, UsernameNotOccupiedError, UserPrivacyRestrictedError
 from dotenv import load_dotenv
 load_dotenv()
 
 
+with open("config.json", "r") as config_file:
+    config = json.load(config_file)
 
 API_ID       = os.getenv("API_ID")
 API_HASH     = os.getenv("API_HASH")
 SESSION_NAME = "gift_session"
 
-MAX_DEPTH    = 6
-MAX_USERS    = 100
-DELAY        = 2.5
+MAX_DEPTH    = config["MAX_DEPTH"]
+MAX_USERS    = config["MAX_USERS"]
+DELAY        = config["DELAY"]
 
 visited   = set()
+visited_names = set()
 graph     = defaultdict(list)
 user_map  = {}
 
@@ -38,7 +42,6 @@ def format_username(user):
 
 
 async def get_gifts(client, entity, depth):
-    """Fetch all visible gifts. entity must be the full User object (not just an ID)."""
     results = []
     offset  = ""
 
@@ -105,59 +108,77 @@ async def get_gifts(client, entity, depth):
 
     return results
 
-async def dfs(client, username, depth=0):
+async def bfs(client, start_username):
+    queue = deque([(start_username, 0)])
+    
+    # Pre-resolve the start username if possible to get its ID and avoid visiting it twice
+    # However, to keep it simple and consistent with how we handle users, we'll resolve inside the loop.
+    
+    while queue and len(visited) < MAX_USERS:
+        username, depth = queue.popleft()
+        
+        if depth >= MAX_DEPTH:
+            continue
+
+        log(depth, f"🔎 Resolving '{username}'...")
+
+        try:
+            entity = await client.get_entity(username)
+        except UsernameNotOccupiedError:
+            log(depth, f"❌ User '{username}' not found")
+            continue
+        except UserPrivacyRestrictedError:
+            log(depth, f"🔒 '{username}' is private")
+            continue
+        except Exception as e:
+            log(depth, f"⚠️  Could not resolve '{username}': {type(e).__name__}: {e}")
+            continue
+
+        if entity.id in visited:
+            log(depth, f"↩️  Already visited {format_username(entity)}, skipping")
+            continue
+
+        visited.add(entity.id)
+        display = format_username(entity)
+        visited_names.add(display)
+        log(depth, f"👤 Scanning {display} (depth={depth}, visited={len(visited)}/{MAX_USERS})")
+
+        gifts = await get_gifts(client, entity, depth)
+        log(depth, f"   ✅ {len(gifts)} non-anonymous gifts found")
+
+        # Update recipient's note
+        export_node(display)
+
+        for sender_id, sender_user, gift in gifts:
+            sender_display = user_map.get(sender_id) or f"id:{sender_id}"
+
+            graph[sender_display].append({
+                "to"      : display,
+                "gift_id" : gift.gift.id if getattr(gift, 'gift', None) else None,
+                "date"    : gift.date,
+                "stars"   : getattr(gift, 'convert_stars', None),
+            })
+
+            log(depth, f"   ↳ {sender_display} ──gifted──► {display}")
+
+            # Update only recipient note after each connection is added
+            # We don't create notes for senders until they are visited
+            export_node(display)
+            
+            # If the sender is already visited, update their note too (to show the 'Gifted to' link)
+            if sender_display in visited_names:
+                export_node(sender_display)
+
+            if sender_id not in visited and len(visited) < MAX_USERS:
+                next_handle = sender_user.username if (sender_user and sender_user.username) else sender_id
+                # Only add to queue if depth is within limits
+                if depth + 1 < MAX_DEPTH:
+                    queue.append((next_handle, depth + 1))
+
     if len(visited) >= MAX_USERS:
-        log(depth, f"🛑 Reached MAX_USERS ({MAX_USERS}), stopping")
-        return
-    if depth >= MAX_DEPTH:
-        log(depth, f"🛑 Reached MAX_DEPTH ({MAX_DEPTH}), stopping")
-        return
-
-    log(depth, f"🔎 Resolving '{username}'...")
-
-    try:
-        entity = await client.get_entity(username)
-    except UsernameNotOccupiedError:
-        log(depth, f"❌ User '{username}' not found")
-        return
-    except UserPrivacyRestrictedError:
-        log(depth, f"🔒 '{username}' is private")
-        return
-    except Exception as e:
-        log(depth, f"⚠️  Could not resolve '{username}': {type(e).__name__}: {e}")
-        return
-
-    if entity.id in visited:
-        log(depth, f"↩️  Already visited {format_username(entity)}, skipping")
-        return
-
-    visited.add(entity.id)
-    display = format_username(entity)
-    log(depth, f"👤 Scanning {display} (depth={depth}, visited={len(visited)}/{MAX_USERS})")
-
-    gifts = await get_gifts(client, entity, depth)
-    log(depth, f"   ✅ {len(gifts)} non-anonymous gifts found")
-
-    for sender_id, sender_user, gift in gifts:
-        sender_display = user_map.get(sender_id) or f"id:{sender_id}"
-
-        graph[sender_display].append({
-            "to"      : display,
-            "gift_id" : gift.gift.id if getattr(gift, 'gift', None) else None,
-            "date"    : gift.date,
-            "stars"   : getattr(gift, 'convert_stars', None),
-        })
-
-        log(depth, f"   ↳ {sender_display} ──gifted──► {display}")
-
-        if sender_id not in visited and len(visited) < MAX_USERS:
-            next_handle = sender_user.username if (sender_user and sender_user.username) else sender_id
-            await dfs(client, next_handle, depth + 1)
-
-
-
-            if sender_id not in visited:
-                graph[sender_display].pop()
+        log(0, f"🛑 Reached MAX_USERS ({MAX_USERS}), stopping")
+    elif not queue:
+        log(0, f"🏁 Queue empty, traversal finished")
 
 
 def print_tree():
@@ -173,51 +194,42 @@ def print_tree():
             stars = f" ({edge['stars']}⭐)" if edge['stars'] else ""
             print(f"  └─ gifted {edge['to']}{stars}", flush=True)
 
-def export_obsidian(vault_dir="gift_vault"):
+def export_node(node, vault_dir="gift_vault"):
     import os
     os.makedirs(vault_dir, exist_ok=True)
 
+    filename = node.lstrip("@").replace("/", "_").replace(" ", "_") + ".md"
+    filepath = os.path.join(vault_dir, filename)
 
-    all_nodes = set(graph.keys())
+    sections = [f"№ {node}"]
 
-    for edges in graph.values():
-        for edge in edges:
-            all_nodes.add(edge["to"])
+    sent = graph.get(node, [])
+    if sent:
+        block = ["\n\n### Gifted to"]
+        for edge in sent:
+            target = edge["to"].lstrip("@")
+            stars = f" — {edge['stars']}⭐" if edge["stars"] else ""
+            block.append(f"\n- [[{target}]]{stars}")
+        sections.append("".join(block))
 
-    for node in all_nodes:
-        filename = node.lstrip("@").replace("/", "_").replace(" ", "_") + ".md"
-        filepath = os.path.join(vault_dir, filename)
+    received = []
+    for sender, edges in graph.items():
+        for e in edges:
+            if e["to"] == node:
+                received.append((sender, e))
 
-        sections = [f"№ {node}"]
+    if received:
+        block = ["\n\n### Received from"]
+        for sender, edge in received:
+            src = sender.lstrip("@")
+            stars = f" — {edge['stars']}⭐" if edge["stars"] else ""
+            block.append(f"\n- [[{src}]]{stars}")
+        sections.append("".join(block))
 
-
-        sent = graph.get(node, [])
-        if sent:
-            block = ["Gifted to"]
-            for edge in sent:
-                target = edge["to"].lstrip("@")
-                stars  = f" — {edge['stars']}⭐" if edge["stars"] else ""
-                block.append(f"- [[{target}]]{stars}")
-            sections.append("".join(block))
-
-
-        received = [(sender, e) for sender, edges in graph.items() for e in edges if e["to"] == node]
-        if received:
-            block = ["Received from"]
-            for sender, edge in received:
-                src   = sender.lstrip("@")
-                stars = f" — {edge['stars']}⭐" if edge["stars"] else ""
-                block.append(f"- [[{src}]]{stars}")
-            sections.append("".join(block))
-
-
-        content = "".join(sections) + ""
-
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(content)
-
-    print(f"Obsidian vault saved to '{vault_dir}/' ({len(all_nodes)} notes)", flush=True)
-    print(f"   Open it in Obsidian: File → Open Vault → select the folder", flush=True)
+    content = "".join(sections)
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(content)
+    # log(0, f"      📄 Updated note: {filename}")
 
 def save_json(filename="gift_graph_output.json"):
     serializable = {}
@@ -231,18 +243,18 @@ def save_json(filename="gift_graph_output.json"):
     print(f"\n💾 Graph saved to {filename}", flush=True)
 
 
-async def main():
+async def parse():
     if not API_ID or not API_HASH:
         print("❌ Set your API_ID and API_HASH at the top of the script.")
         print("   Get them from https://my.telegram.org")
         return
 
-    start_username = input("Enter starting @username (without @): ").strip().lstrip("@")
+    start_username = config['USERNAME']
     if not start_username:
         print("❌ No username provided.")
         return
 
-    print(f"\n🚀 Starting DFS from @{start_username}", flush=True)
+    print(f"\n🚀 Starting BFS from @{start_username}", flush=True)
     print(f"   Max depth: {MAX_DEPTH} | Max users: {MAX_USERS} | Delay: {DELAY}s\n", flush=True)
 
     client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
@@ -251,14 +263,16 @@ async def main():
         password = lambda: input("2FA password (leave blank if none): ") or None,
     )
     async with client:
-        await dfs(client, start_username)
+        await bfs(client, start_username)
 
+    print("\n" + "═" * 50, flush=True)
+    print("  FINAL EXPORT", flush=True)
+    print("═" * 50, flush=True)
     print_tree()
     save_json()
-    export_obsidian()
 
     total_edges = sum(len(v) for v in graph.values())
     print(f"\n✅ Done — visited {len(visited)} users, found {total_edges} gift connections", flush=True)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == "__main__" and 0:
+    asyncio.run(parse())
