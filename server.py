@@ -2,7 +2,7 @@ import asyncio
 import json
 import websockets
 
-
+import parser
 
 async def your_parser(config: dict):
     print("Starting with config:", config)
@@ -11,16 +11,13 @@ async def your_parser(config: dict):
         await asyncio.sleep(config.get("interval", 0.1))
 
 async def handle(ws):
+    print("Handling connection...")
     config = json.loads(await ws.recv())
     print("Received config:", config)
 
-    with open("config.json", "w") as f:
-        json.dump(config, f)
-
-    async for datum in your_parser(config):
-        await ws.send(json.dumps(datum))
-
-    await ws.send(json.dumps({"__done": True}))  # signal end
+    async for datum in parser.parse(config):
+        message = json.dumps(datum)
+        await ws.send(message)
 
 async def main():
     async with websockets.serve(handle, "localhost", 8765):

@@ -5,11 +5,11 @@
     <title>Gift Chain</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
 <body>
-<form action="/process-data.php" method="POST">
+<form id="config-form">
 <div class="main-container">
     <div class="container" id="tg-id-container">
         <input type="text" id="tg-id" name="tg-id" placeholder="Enter user's @" onmouseenter="this.focus(); this.select();">
@@ -54,7 +54,17 @@
 </div>
 </form>
 
+<div id="status-notification" class="hidden">
+    <div class="notification-content">
+        <h3 id="status-title">Parsing Complete!</h3>
+        <p id="status-message"></p>
+        <div id="error-list"></div>
+        <button id="close-notification">OK</button>
+    </div>
+</div>
+
 <a href="https://github.com/YotaBitOn/Telegram-GiftGraph"><i id='git-icon' class="fa-brands fa-git-alt"></i></a>
 
+<script src="data_to_graph.js"></script>
 </body>
 </html>

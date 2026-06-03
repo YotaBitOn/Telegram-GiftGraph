@@ -1,6 +1,1 @@
-{
-"MAX_DEPTH":     6,
-"MAX_USERS":     100,
-"DELAY":         2.5,
-"USERNAME": "yasinets"
-}
+{"MAX_DEPTH": 6, "MAX_USERS": 100, "DELAY": 2.5, "USERNAME": "yasinets"}

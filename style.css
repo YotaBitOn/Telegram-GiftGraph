@@ -12,17 +12,38 @@
 }
 
 body {
+    background-color: #0d1117;
     color: #ffffff;
     position: relative;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+}
 
-    background: radial-gradient(98.8% 312.26% at 0.57% 5.19%, #1C92D2 0%, #8E29BA 49.42%, #EB9D58 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+#config-form {
+    margin: 0;
+    padding: 0;
+}
 
+svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-color: transparent;
+    cursor: grab;
+}
+
+svg:active {
+    cursor: grabbing;
 }
 
 .main-container {
+    background: rgba(13, 17, 23, 0.8);
+    padding: 20px;
+    border-radius: 10px;
     position: absolute;
     top: 65%;
     left: 50%;
@@ -34,6 +55,15 @@ body {
     flex-direction: column;
 
     height: 40vh;
+    opacity: 1;
+    transition: transform 1s ease, opacity 1s ease;
+    z-index: 10;
+}
+
+.main-container.fade-out {
+    transform: translate(-50%, 100vh);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .container {
@@ -55,6 +85,14 @@ body {
 
     width: 80%;
     height: 100%;
+
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+#tg-id:hover, #tg-id:focus {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 #tg-id::placeholder {
@@ -70,6 +108,103 @@ body {
     border: 7px solid #ffffff;
     border-radius: 25px;
     color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#status-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(13, 17, 23, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    border: 3px solid #7b2eda;
+    box-shadow: 0 0 30px rgba(123, 46, 218, 0.4);
+    z-index: 1000;
+    max-width: 400px;
+    width: 90%;
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#status-title {
+    font-size: 24px;
+    text-align: center;
+}
+
+#status-message {
+    text-align: center;
+    font-size: 16px;
+    color: #ccc;
+}
+
+#error-list {
+    display: none;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: #ff5555;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#error-list ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#error-list li {
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+#close-notification {
+    background: #7b2eda;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+#close-notification:hover {
+    background: #9d56f7;
+    transform: scale(1.05);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+#submit:hover {
+    background: #ffffff;
+    color: #0d1117;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+#submit:active {
+    transform: scale(0.95);
 }
 
 #check-icon {
@@ -129,6 +264,11 @@ body {
     border-radius: 50%;
     background: #FFFFFF;
     border: 2px solid #333;
+    transition: transform 0.2s ease;
+}
+
+#depth:hover::-webkit-slider-thumb {
+    transform: scale(1.3);
 }
 
 #depth::-moz-range-thumb {
@@ -137,6 +277,11 @@ body {
     border-radius: 50%;
     background: #FFFFFF;
     border: 2px solid #333;
+    transition: transform 0.2s ease;
+}
+
+#depth:hover::-moz-range-thumb {
+    transform: scale(1.3);
 }
 
 
@@ -169,6 +314,14 @@ body {
     font-size: 24px;
     padding: 10px;
     text-align: center;
+
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+#user-limit:hover, #user-limit:focus {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 /* All except Firefox */
@@ -192,4 +345,11 @@ input[type="number"] {
     cursor: pointer;
     color: #F05032;
     font-size: 40px;
+
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+#git-icon:hover {
+    transform: scale(1.2) rotate(10deg);
+    color: #ffffff;
 }
