@@ -350,7 +350,7 @@ async function connectToServer(){
         mainContainer.classList.add('fade-out');
     }
 
-    const ws = new WebSocket("ws://localhost:8765");
+    const ws = new WebSocket("ws://" + window.location.host + "/ws/graph");
 
     ws.onopen = () => {
         ws.send(JSON.stringify({

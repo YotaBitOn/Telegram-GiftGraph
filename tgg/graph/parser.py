@@ -12,7 +12,7 @@ load_dotenv()
 
 API_ID       = os.getenv("API_ID")
 API_HASH     = os.getenv("API_HASH")
-SESSION_NAME = "gift_session"
+SESSION_NAME = "data/gift_session"
 
 # Global state
 visited   = set()
@@ -190,7 +190,7 @@ def print_tree():
             stars = f" ({edge['stars']}⭐)" if edge['stars'] else ""
             print(f"  └─ gifted {edge['to']}{stars}", flush=True)
 
-def save_json(filename="gift_graph_output.json"):
+def save_json(filename="data/gift_graph_output.json"):
     serializable = {}
     for k, v in graph.items():
         serializable[k] = [
