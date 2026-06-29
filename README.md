@@ -13,6 +13,7 @@ You of course can choose depth and limit of users visited on page
 
 ## Stack
 
+**django** for backend handling
 **d3.js** for graph vilualization<br>
 **Websockets** for front and back end communication<br>
 **Telethon** for getting info about user connections from Telegram<br>
@@ -22,13 +23,14 @@ You of course can choose depth and limit of users visited on page
 
 ```
 git clone https://github.com/YotaBitOn/Telegram-GiftGraph
-pip install telethon dotenv
-python python main.py
+pip install telethon dotenv django
+cd tgg
+python manage.py runserver
 ```
 
 ## Use instructions:
 
-Go to config section of file
+Go to config section of parser.py
 ```
 API_ID       = os.getenv("API_ID") 
 API_HASH     = os.getenv("API_HASH")
@@ -46,7 +48,7 @@ To get those ID's you need to create your own app on [https://my.telegram.org/ap
 On first run server will ask you to login into telegram using your number and 2fa password.<br>
 Don't worry, your privacy will not be violated becuase there's no way for me to get your data<br>
 It is needed because I as developer can`t  use my account to make requests for possible users of GiftGraph<br> 
-because my acc will get banned
+because my acc will get **banned**
 
 Be reasoneble when setting these params
 ```
